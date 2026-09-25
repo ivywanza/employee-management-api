@@ -7,8 +7,17 @@ from app.models import (
     OnboardingDocument,
     Document,
 )
+from app.routers import user, department, onboarding, leave, document
+
+
 
 app = FastAPI()
+
+app.include_router(user.router)
+app.include_router(department.router)
+app.include_router(onboarding.router)
+app.include_router(document.router)
+app.include_router(leave.router)
 
 
 @app.get("/")
