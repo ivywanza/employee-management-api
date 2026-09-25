@@ -19,8 +19,12 @@ class LeaveRequestResponse(BaseModel):
     start_date: date
     end_date: date
     reason: Optional[str]
-    reviewed: bool
+    approved: bool
+    reviewed_by: uuid.UUID
     submitted_at: datetime
 
     class Config:
         from_attributes = True
+
+class LeaveReviewRequest(BaseModel):
+    reviewed_by: uuid.UUID

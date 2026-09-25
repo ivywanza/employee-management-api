@@ -16,6 +16,7 @@ def create_document(document: DocumentRequest, db: Session = Depends(get_db)):
         title=document.title,
         file_key=document.file_key,
         category=document.category,
+        uploaded_by = document.uploaded_by
     )
     db.add(new_document)
     db.commit()

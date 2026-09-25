@@ -8,6 +8,7 @@ class DocumentRequest(BaseModel):
     title: str
     file_key: str
     category: Optional[str] = None
+    uploaded_by: uuid.UUID
 
 
 class DocumentResponse(BaseModel):

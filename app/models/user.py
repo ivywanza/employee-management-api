@@ -29,6 +29,6 @@ class User(Base):
     department = relationship("Department", back_populates="employees")
     documents_uploaded = relationship("Document", back_populates="uploaded_by_user")
     onboarding_documents = relationship("OnboardingDocument", back_populates="user")
-    leave_requests = relationship("LeaveRequest", back_populates="user")
+    leave_requests = relationship("LeaveRequest", back_populates="user", foreign_keys="[LeaveRequest.user_id]")
 
     

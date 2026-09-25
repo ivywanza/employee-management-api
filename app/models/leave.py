@@ -15,7 +15,9 @@ class LeaveRequest(Base):
     start_date = Column(Date, nullable=False)
     end_date = Column(Date, nullable=False)
     reason = Column(Text, nullable=True)
-    reviewed = Column(Boolean, default=False, nullable=False)
+    approved = Column(Boolean, default=False, nullable=False)
+    reviewed_by = Column(UUID(as_uuid=True), ForeignKey("users.id"), nullable=True)
     submitted_at = Column(DateTime, default=datetime.utcnow, nullable=False)
 
-    user = relationship("User", back_populates="leave_requests")
+    user = relationship("User", back_populates="leave_requests", foreign_keys=[user_id])
+    reviewer = relationship("User", foreign_keys=[reviewed_by])

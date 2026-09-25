@@ -19,7 +19,7 @@ class UserResponse(BaseModel):
     email: EmailStr
     role: RoleEnum
     department_id: Optional[uuid.UUID]
-    start_date: date
+    start_date: str
     is_active: bool
     created_at: datetime
 

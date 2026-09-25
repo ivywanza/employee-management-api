@@ -24,4 +24,5 @@ app.include_router(leave.router)
 async def root():
     return {"message": "Hello World"}
 
+# Base.metadata.drop_all(bind=engine)
 Base.metadata.create_all(bind=engine)
