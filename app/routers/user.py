@@ -1,9 +1,9 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from sqlalchemy.exc import IntegrityError
-
+from app.auth.dependencies import require_admin
 from app.database import get_db
-from app.models.user import User
+from app.models.user import User,RoleEnum
 from app.models.department import Department
 from app.schemas.user import UserRequest, UserResponse
 from app.auth.security import hash_password
@@ -12,8 +12,12 @@ router = APIRouter(prefix="/users", tags=["Users"])
 
 
 @router.post("/", response_model=UserResponse)
-def create_user(user: UserRequest, db: Session = Depends(get_db)):
+def create_user(user: UserRequest, db: Session = Depends(get_db), current_user: User = Depends(require_admin)):
+    if user.role == RoleEnum.superadmin and current_user.role != RoleEnum.superadmin:
+        raise HTTPException(status_code=403, detail="Only a superadmin can create a superadmin")
+
     existing_user = db.query(User).filter(User.email == user.email).first()
+
     if existing_user:
         raise HTTPException(status_code=400, detail="A user with this email already exists")
 
@@ -41,5 +45,5 @@ def create_user(user: UserRequest, db: Session = Depends(get_db)):
 
 
 @router.get("/", response_model=list[UserResponse])
-def list_users(db: Session = Depends(get_db)):
+def list_users(db: Session = Depends(get_db), current_user: User = Depends(require_admin)):
     return db.query(User).all()

@@ -1,4 +1,6 @@
 from fastapi import FastAPI
+from contextlib import asynccontextmanager
+from app.seed import seed_superadmin
 from app.database import Base, engine
 from app.models import (
     User,
@@ -7,12 +9,18 @@ from app.models import (
     OnboardingDocument,
     Document,
 )
-from app.routers import user, department, onboarding, leave, document
+from app.routers import user, department, onboarding, leave, document, auth
 from fastapi.middleware.cors import CORSMiddleware
 
 
+# runs once, when the server starts
+#initializing superdaamin immedietly the app starts
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    seed_superadmin()  
+    yield
 
-app = FastAPI()
+app = FastAPI(lifespan=lifespan)
 
 app.add_middleware(
     CORSMiddleware,
@@ -27,6 +35,7 @@ app.include_router(department.router)
 app.include_router(onboarding.router)
 app.include_router(document.router)
 app.include_router(leave.router)
+app.include_router(auth.router)
 
 
 @app.get("/")
