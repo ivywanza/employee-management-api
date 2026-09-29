@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from sqlalchemy.exc import IntegrityError
-from app.auth.dependencies import require_admin
+from app.auth.dependencies import require_admin, get_current_user
 from app.database import get_db
 from app.models.user import User,RoleEnum
 from app.models.department import Department
@@ -47,3 +47,7 @@ def create_user(user: UserRequest, db: Session = Depends(get_db), current_user: 
 @router.get("/", response_model=list[UserResponse])
 def list_users(db: Session = Depends(get_db), current_user: User = Depends(require_admin)):
     return db.query(User).all()
+
+@router.get("/me", response_model=UserResponse)
+def get_me(current_user: User = Depends(get_current_user)):
+    return current_user

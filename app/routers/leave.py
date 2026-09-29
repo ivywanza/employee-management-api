@@ -1,7 +1,7 @@
 import uuid
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
-
+from app.auth.dependencies import get_current_user
 from app.database import get_db
 from app.models.leave import LeaveRequest
 from app.models.user import User
@@ -49,3 +49,15 @@ def mark_leave_reviewed(leave_id: uuid.UUID, review: LeaveReviewRequest, db: Ses
     db.commit()
     db.refresh(leave)
     return leave
+
+@router.get("/mine", response_model=list[LeaveRequestResponse])
+def my_leave_requests(
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    return (
+        db.query(LeaveRequest)
+        .filter(LeaveRequest.user_id == current_user.id)
+        .order_by(LeaveRequest.submitted_at.desc())
+        .all()
+    )
