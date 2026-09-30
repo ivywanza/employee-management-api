@@ -7,6 +7,8 @@ from app.models.user import User,RoleEnum
 from app.models.department import Department
 from app.schemas.user import UserRequest, UserResponse
 from app.auth.security import hash_password
+import uuid
+
 
 router = APIRouter(prefix="/users", tags=["Users"])
 
@@ -51,3 +53,25 @@ def list_users(db: Session = Depends(get_db), current_user: User = Depends(requi
 @router.get("/me", response_model=UserResponse)
 def get_me(current_user: User = Depends(get_current_user)):
     return current_user
+
+@router.patch("/{user_id}/status", response_model=UserResponse)
+def set_user_active_status(
+    user_id: uuid.UUID,
+    is_active: bool,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(require_admin),
+):
+    if user_id == current_user.id:
+        raise HTTPException(status_code=400, detail="You can't deactivate your own account")
+
+    target = db.query(User).filter(User.id == user_id).first()
+    if not target:
+        raise HTTPException(status_code=404, detail="User not found")
+
+    if target.role == RoleEnum.superadmin and current_user.role != RoleEnum.superadmin:
+        raise HTTPException(status_code=403, detail="Only a superadmin can deactivate a superadmin")
+
+    target.is_active = is_active
+    db.commit()
+    db.refresh(target)
+    return target

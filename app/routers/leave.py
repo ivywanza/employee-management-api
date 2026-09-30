@@ -1,7 +1,7 @@
 import uuid
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
-from app.auth.dependencies import get_current_user
+from app.auth.dependencies import get_current_user, require_hr_or_superadmin
 from app.database import get_db
 from app.models.leave import LeaveRequest
 from app.models.user import User
@@ -11,13 +11,18 @@ router = APIRouter(prefix="/leave-requests", tags=["Leave Requests"])
 
 
 @router.post("/", response_model=LeaveRequestResponse)
-def submit_leave_request(leave: LeaveRequestRequest, db: Session = Depends(get_db)):
-    user = db.query(User).filter(User.id == leave.user_id).first()
+def submit_leave_request(
+    leave: LeaveRequestRequest, 
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+    ):
+
+    user = db.query(User).filter(User.id == current_user.id).first()
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
 
     new_leave = LeaveRequest(
-        user_id=leave.user_id,
+        user_id=current_user.id,
         leave_type=leave.leave_type,
         start_date=leave.start_date,
         end_date=leave.end_date,
@@ -35,17 +40,16 @@ def list_leave_requests(db: Session = Depends(get_db)):
 
 
 @router.patch("/{leave_id}/review", response_model=LeaveRequestResponse)
-def mark_leave_reviewed(leave_id: uuid.UUID, review: LeaveReviewRequest, db: Session = Depends(get_db)):
+def mark_leave_reviewed(
+    leave_id: uuid.UUID,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(require_hr_or_superadmin),
+):
     leave = db.query(LeaveRequest).filter(LeaveRequest.id == leave_id).first()
     if not leave:
         raise HTTPException(status_code=404, detail="Leave request not found")
-
-    reviewer = db.query(User).filter(User.id == review.reviewed_by).first()
-    if not reviewer:
-        raise HTTPException(status_code=404, detail="Reviewer not found")
-
     leave.reviewed = True
-    leave.reviewed_by = review.reviewed_by
+    leave.reviewed_by = current_user.id
     db.commit()
     db.refresh(leave)
     return leave

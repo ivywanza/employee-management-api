@@ -5,7 +5,6 @@ from pydantic import BaseModel
 
 
 class LeaveRequestRequest(BaseModel):
-    user_id: uuid.UUID
     leave_type: str = "sick"
     start_date: date
     end_date: date
@@ -20,7 +19,7 @@ class LeaveRequestResponse(BaseModel):
     end_date: date
     reason: Optional[str]
     approved: bool
-    reviewed_by: uuid.UUID
+    reviewed_by: Optional[uuid.UUID] = None
     submitted_at: datetime
 
     class Config:
