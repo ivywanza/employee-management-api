@@ -2,6 +2,7 @@ import uuid
 from datetime import date, datetime
 from typing import Optional
 from pydantic import BaseModel
+from app.models.leave import LeaveStatusEnum
 
 
 class LeaveRequestRequest(BaseModel):
@@ -9,6 +10,8 @@ class LeaveRequestRequest(BaseModel):
     start_date: date
     end_date: date
     reason: Optional[str] = None
+    emergency_contact_name: Optional[str] = None
+    emergency_contact_phone: Optional[str] = None
 
 
 class LeaveRequestResponse(BaseModel):
@@ -18,12 +21,21 @@ class LeaveRequestResponse(BaseModel):
     start_date: date
     end_date: date
     reason: Optional[str]
-    approved: bool
+    emergency_contact_name: Optional[str]
+    emergency_contact_phone: Optional[str]
+    status: LeaveStatusEnum
     reviewed_by: Optional[uuid.UUID] = None
     submitted_at: datetime
 
     class Config:
         from_attributes = True
 
-class LeaveReviewRequest(BaseModel):
-    reviewed_by: uuid.UUID
+
+class LeaveBalanceResponse(BaseModel):
+    year: int
+    annual_allowance: int
+    days_used: int
+    days_remaining: int
+    menstrual_month: str
+    menstrual_days_used: int
+    menstrual_days_remaining: int
