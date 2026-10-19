@@ -11,6 +11,7 @@ class LeaveStatusEnum(str, enum.Enum):
     pending = "pending"
     approved = "approved"
     rejected = "rejected"
+    under_review = "under-review"
 
 
 class LeaveRequest(Base):
