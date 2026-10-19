@@ -9,8 +9,10 @@ from app.models import (
     OnboardingDocument,
     Document,
 )
-from app.routers import user, department, onboarding, leave, document, auth
+from app.routers import user, department, onboarding, leave, document, auth, message
 from fastapi.middleware.cors import CORSMiddleware
+from app.routers import live
+
 
 
 # runs once, when the server starts
@@ -26,7 +28,7 @@ app.add_middleware(
     CORSMiddleware,
     allow_origins=[
                    "http://localhost:5173", 
-                   "https://employee-management-frontend-one-taupe.vercel.app"
+                   "https://employee-management-frontend-ndus.vercel.app"
                    ],
 
     allow_credentials=True,
@@ -40,7 +42,8 @@ app.include_router(onboarding.router)
 app.include_router(document.router)
 app.include_router(leave.router)
 app.include_router(auth.router)
-
+app.include_router(live.router)
+app.include_router(message.router)
 
 @app.get("/")
 async def root():
