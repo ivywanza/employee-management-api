@@ -17,9 +17,12 @@ class LeaveRequestRequest(BaseModel):
 class LeaveRequestResponse(BaseModel):
     id: uuid.UUID
     user_id: uuid.UUID
+    applicant_name: Optional[str] = None
+    department: Optional[str] = None
     leave_type: str
     start_date: date
     end_date: date
+    days: int
     reason: Optional[str]
     emergency_contact_name: Optional[str]
     emergency_contact_phone: Optional[str]

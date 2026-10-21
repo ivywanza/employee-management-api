@@ -9,9 +9,9 @@ from app.database import Base
 
 class LeaveStatusEnum(str, enum.Enum):
     pending = "pending"
+    under_review = "under-review"
     approved = "approved"
     rejected = "rejected"
-    under_review = "under-review"
 
 
 class LeaveRequest(Base):
@@ -31,3 +31,15 @@ class LeaveRequest(Base):
 
     user = relationship("User", back_populates="leave_requests", foreign_keys=[user_id])
     reviewer = relationship("User", foreign_keys=[reviewed_by])
+
+    @property
+    def applicant_name(self) -> str | None:
+        return self.user.full_name if self.user else None
+
+    @property
+    def department(self) -> str | None:
+        return self.user.department.name if self.user and self.user.department else None
+
+    @property
+    def days(self) -> int:
+        return (self.end_date - self.start_date).days + 1
