@@ -17,3 +17,12 @@ class OnboardingDocument(Base):
     uploaded_at = Column(DateTime, default=datetime.utcnow, nullable=False)
 
     user = relationship("User", back_populates="onboarding_documents")
+
+    @property
+    def applicant_name(self) -> str | None:
+        return self.user.full_name if self.user else None
+    
+    @property
+    def department(self) -> str | None:
+        return self.user.department.name if self.user and self.user.department else None
+    

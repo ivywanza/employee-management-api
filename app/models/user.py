@@ -1,7 +1,7 @@
 import uuid
 import enum
 from datetime import date, datetime
-from sqlalchemy import Column, String, Date, DateTime, Boolean, ForeignKey, Enum
+from sqlalchemy import Column, String, Date, DateTime, Boolean, ForeignKey, Enum, text
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import relationship
 from app.database import Base
@@ -25,6 +25,10 @@ class User(Base):
     start_date = Column(String, default=date.today, nullable=False)
     is_active = Column(Boolean, default=True, nullable=False)
     created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
+    must_change_password = Column(Boolean, nullable=False, default=False, server_default=text("false"))
+    onboarding_required = Column(Boolean, nullable=False, default=False, server_default=text("false"))
+    welcome_shown = Column(Boolean, nullable=False, default=True, server_default=text("true"))
+
 
     department = relationship("Department", back_populates="employees")
     documents_uploaded = relationship("Document", back_populates="uploaded_by_user")
