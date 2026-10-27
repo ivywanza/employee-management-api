@@ -9,10 +9,10 @@ from app.models import (
     OnboardingDocument,
     Document,
 )
-from app.routers import user, department, onboarding, leave, document, auth, message
+from app.routers import grievance, user, department, onboarding, leave, document, auth, message
 from fastapi.middleware.cors import CORSMiddleware
 from app.routers import live
-
+from app.routers import requisition
 
 
 # runs once, when the server starts
@@ -44,6 +44,8 @@ app.include_router(leave.router)
 app.include_router(auth.router)
 app.include_router(live.router)
 app.include_router(message.router)
+app.include_router(grievance.router)
+app.include_router(requisition.router)
 
 @app.get("/")
 async def root():
