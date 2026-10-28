@@ -9,7 +9,7 @@ from app.models import (
     OnboardingDocument,
     Document,
 )
-from app.routers import grievance, user, department, onboarding, leave, document, auth, message
+from app.routers import grievance, user, department, onboarding, leave, document, auth, message, asset, asset_categories,asset_assignments
 from fastapi.middleware.cors import CORSMiddleware
 from app.routers import live
 from app.routers import requisition
@@ -46,6 +46,10 @@ app.include_router(live.router)
 app.include_router(message.router)
 app.include_router(grievance.router)
 app.include_router(requisition.router)
+app.include_router(asset.router)
+app.include_router(asset_categories.router)
+app.include_router(asset_assignments.router)
+
 
 @app.get("/")
 async def root():
