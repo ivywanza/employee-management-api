@@ -59,7 +59,7 @@ def create_user(
     new_user = User(
         full_name=user.full_name,
         email=user.email,
-        hashed_password=hash_password(temp_password),  # only the hash is stored
+        hashed_password=hash_password(temp_password),  
         role=user.role,
         department_id=user.department_id,
         start_date=user.start_date,

@@ -9,7 +9,7 @@ from app.models import (
     OnboardingDocument,
     Document,
 )
-from app.routers import grievance, user, department, onboarding, leave, document, auth, message, asset, asset_categories,asset_assignments
+from app.routers import grievance, user, department, onboarding, leave, document, auth, message, asset, asset_categories,asset_assignments, notification
 from fastapi.middleware.cors import CORSMiddleware
 from app.routers import live
 from app.routers import requisition
@@ -49,7 +49,7 @@ app.include_router(requisition.router)
 app.include_router(asset.router)
 app.include_router(asset_categories.router)
 app.include_router(asset_assignments.router)
-
+app.include_router(notification.router)
 
 @app.get("/")
 async def root():

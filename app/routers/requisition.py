@@ -99,6 +99,7 @@ def my_requisitions(user=Depends(get_current_user), db: Session = Depends(get_db
     return db.scalars(stmt.order_by(Requisition.id.desc())).all()
 
 
+
 @router.get("/summary")
 def summary(
     year: int | None = Query(default=None, ge=2020, le=2100),
@@ -106,26 +107,65 @@ def summary(
     db: Session = Depends(get_db),
 ):
     """Counts by status, plus approved totals per month (feeds the chart)."""
-    year = year or date.today().year
-    counts = dict(db.execute(select(Requisition.status, func.count()).group_by(Requisition.status)).all())
 
-    month = func.to_char(Requisition.reviewed_on, "YYYY-MM").label("month")
-    rows = db.execute(
-        select(month, func.sum(Requisition.amount))
-        .where(Requisition.status == "approved", func.extract("year", Requisition.reviewed_on) == year)
-        .group_by(month)
-        .order_by(month)
-    ).all()
-    approved_total = db.scalar(
-        select(func.coalesce(func.sum(Requisition.amount), 0)).where(Requisition.status == "approved")
+    year = year or date.today().year
+
+    counts = dict(
+        db.execute(
+            select(Requisition.status, func.count())
+            .group_by(Requisition.status)
+        ).all()
     )
+
+    # Use database-independent date boundaries.
+    start_date = date(year, 1, 1)
+    end_date = date(year + 1, 1, 1)
+
+    # Retrieve approved requisitions within the selected year.
+    rows = db.execute(
+        select(Requisition.reviewed_on, Requisition.amount)
+        .where(
+            Requisition.status == "approved",
+            Requisition.reviewed_on >= start_date,
+            Requisition.reviewed_on < end_date,
+            Requisition.reviewed_on.is_not(None),
+        )
+        .order_by(Requisition.reviewed_on)
+    ).all()
+
+    # Group monthly totals in Python.
+    monthly_totals = {}
+
+    for reviewed_on, amount in rows:
+        month = reviewed_on.strftime("%Y-%m")
+        monthly_totals[month] = (
+            monthly_totals.get(month, Decimal("0"))
+            + Decimal(str(amount or 0))
+        )
+
+    approved_total = db.scalar(
+        select(
+            func.coalesce(
+                func.sum(Requisition.amount),
+                0
+            )
+        ).where(Requisition.status == "approved")
+    )
+
     return {
         "pending": counts.get("pending", 0),
         "approved": counts.get("approved", 0),
         "rejected": counts.get("rejected", 0),
-        "approved_total": float(approved_total),
-        "by_month": [{"month": m, "total": float(t)} for m, t in rows],
+        "approved_total": float(approved_total or 0),
+        "by_month": [
+            {
+                "month": month,
+                "total": float(total),
+            }
+            for month, total in sorted(monthly_totals.items())
+        ],
     }
+
 
 
 @router.get("", response_model=list[RequisitionOut])

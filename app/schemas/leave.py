@@ -1,6 +1,6 @@
+
 import uuid
 from datetime import date, datetime
-from typing import Optional
 from pydantic import BaseModel
 from app.models.leave import LeaveStatusEnum
 
@@ -9,25 +9,25 @@ class LeaveRequestRequest(BaseModel):
     leave_type: str = "sick"
     start_date: date
     end_date: date
-    reason: Optional[str] = None
-    emergency_contact_name: Optional[str] = None
-    emergency_contact_phone: Optional[str] = None
+    reason: str | None = None
+    emergency_contact_name: str
+    emergency_contact_phone: str
 
 
 class LeaveRequestResponse(BaseModel):
     id: uuid.UUID
     user_id: uuid.UUID
-    applicant_name: Optional[str] = None
-    department: Optional[str] = None
+    applicant_name: str | None = None
+    department: str | None = None
     leave_type: str
     start_date: date
     end_date: date
     days: int
-    reason: Optional[str]
-    emergency_contact_name: Optional[str]
-    emergency_contact_phone: Optional[str]
+    reason: str | None
+    emergency_contact_name: str | None
+    emergency_contact_phone: str | None
     status: LeaveStatusEnum
-    reviewed_by: Optional[uuid.UUID] = None
+    reviewed_by: uuid.UUID | None = None
     submitted_at: datetime
 
     class Config:

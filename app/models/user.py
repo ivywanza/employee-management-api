@@ -28,7 +28,7 @@ class User(Base):
     must_change_password = Column(Boolean, nullable=False, default=False, server_default=text("false"))
     onboarding_required = Column(Boolean, nullable=False, default=False, server_default=text("false"))
     welcome_shown = Column(Boolean, nullable=False, default=True, server_default=text("true"))
-
+    organisation = Column(String(50),nullable=False,default="red_ant",server_default=text("'red_ant'"))
 
     department = relationship("Department", back_populates="employees")
     documents_uploaded = relationship("Document", back_populates="uploaded_by_user")

@@ -6,10 +6,34 @@ from app.database import get_db
 from app.models.onboarding import OnboardingDocument
 from app.models.user import User
 from app.schemas.onboarding import OnboardingDocumentResponse
-from app.auth.dependencies import get_current_user, require_admin
+from app.auth.dependencies import get_current_user, require_admin,require_hr_or_superadmin
 from app.storage import upload_file, get_signed_url, ONBOARDING_BUCKET
 
 router = APIRouter(prefix="/onboarding-documents", tags=["Onboarding Documents"])
+
+def is_hr(user: User) -> bool:
+    department = getattr(user, "department", None)
+    return bool(
+        department
+        and department.name
+        and department.name.strip().lower() == "hr"
+    )
+
+
+def require_onboarding_reviewer(
+    current_user: User = Depends(get_current_user),
+) -> User:
+    role = str(
+        getattr(current_user.role, "value", current_user.role)
+    ).lower()
+
+    if role in {"admin", "superadmin"} or is_hr(current_user):
+        return current_user
+
+    raise HTTPException(
+        status_code=403,
+        detail="You do not have permission to review onboarding documents.",
+    )
 
 
 @router.post("/", response_model=OnboardingDocumentResponse)
@@ -40,24 +64,54 @@ def my_onboarding_documents(db: Session = Depends(get_db), current_user: User = 
 
 
 @router.get("/", response_model=list[OnboardingDocumentResponse])
-def list_onboarding_documents(db: Session = Depends(get_db), current_user: User = Depends(require_admin)):
+def list_onboarding_documents(db: Session = Depends(get_db), current_user: User = Depends(require_onboarding_reviewer)):
     return db.query(OnboardingDocument).order_by(OnboardingDocument.uploaded_at.desc()).all()
 
 
 @router.get("/{doc_id}/url")
 def get_onboarding_document_url(
-    doc_id: uuid.UUID, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)
+    doc_id: uuid.UUID,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
 ):
-    doc = db.query(OnboardingDocument).filter(OnboardingDocument.id == doc_id).first()
+    doc = (
+        db.query(OnboardingDocument)
+        .filter(OnboardingDocument.id == doc_id)
+        .first()
+    )
+
     if not doc:
-        raise HTTPException(status_code=404, detail="Document not found")
-    if doc.user_id != current_user.id and current_user.role not in ("admin", "superadmin"):
-        raise HTTPException(status_code=403, detail="You can't view this document")
-    return {"url": get_signed_url(ONBOARDING_BUCKET, doc.file_key)}
+        raise HTTPException(
+            status_code=404,
+            detail="Document not found",
+        )
+
+    role = str(
+        getattr(current_user.role, "value", current_user.role)
+    ).lower()
+
+    # Users can always access their own onboarding documents.
+    # Admins, superadmins and HR can access other users' documents.
+    if (
+        doc.user_id != current_user.id
+        and role not in {"admin", "superadmin"}
+        and not is_hr(current_user)
+    ):
+        raise HTTPException(
+            status_code=403,
+            detail="You can't view this document",
+        )
+
+    return {
+        "url": get_signed_url(
+            ONBOARDING_BUCKET,
+            doc.file_key,
+        )
+    }
 
 
 @router.patch("/{doc_id}/review", response_model=OnboardingDocumentResponse)
-def mark_reviewed(doc_id: uuid.UUID, db: Session = Depends(get_db), current_user: User = Depends(require_admin)):
+def mark_reviewed(doc_id: uuid.UUID, db: Session = Depends(get_db), current_user: User = Depends(require_onboarding_reviewer)):
     doc = db.query(OnboardingDocument).filter(OnboardingDocument.id == doc_id).first()
     if not doc:
         raise HTTPException(status_code=404, detail="Onboarding document not found")
@@ -65,3 +119,4 @@ def mark_reviewed(doc_id: uuid.UUID, db: Session = Depends(get_db), current_user
     db.commit()
     db.refresh(doc)
     return doc
+

@@ -20,7 +20,7 @@ def role_name(user: User) -> str:
 
 
 def require_admin(user: User = Depends(get_current_user)) -> User:
-    if role_name(user) not in {"admin", "superadmin"}:
+    if role_name(user) not in {"admin", "superadmin","hr"}:
         raise HTTPException(
             status_code=403,
             detail="You do not have permission to view departments.",
@@ -70,7 +70,35 @@ def list_departments(
 
     return result
 
+@router.get("/mine")
+def get_my_department(
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    if not current_user.department_id:
+        return {
+            "id": None,
+            "name": None,
+        }
 
+    department = (
+        db.query(Department)
+        .filter(Department.id == current_user.department_id)
+        .first()
+    )
+
+    if not department:
+        return {
+            "id": None,
+            "name": None,
+        }
+
+    return {
+        "id": department.id,
+        "name": department.name,
+    }
+
+    
 @router.post(
     "/",
     status_code=201,
