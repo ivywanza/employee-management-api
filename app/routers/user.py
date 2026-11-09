@@ -66,6 +66,7 @@ def create_user(
         must_change_password=True,
         onboarding_required=True,
         welcome_shown=False,
+        
     )
     db.add(new_user)
     try:
