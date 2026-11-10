@@ -1,6 +1,5 @@
-
 from datetime import datetime
-
+from uuid import UUID
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session, joinedload
@@ -325,7 +324,7 @@ def list_asset_requests(
     response_model=AssetRequestOut,
 )
 def review_asset_request(
-    request_id: str,
+    request_id: UUID,
     payload: AssetRequestReview,
     user: User = Depends(require_superadmin),
     db: Session = Depends(get_db),
