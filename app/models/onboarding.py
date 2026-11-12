@@ -25,4 +25,7 @@ class OnboardingDocument(Base):
     @property
     def department(self) -> str | None:
         return self.user.department.name if self.user and self.user.department else None
-    
+
+    @property
+    def organisation(self) -> str | None:
+        return self.user.organisation if self.user else None

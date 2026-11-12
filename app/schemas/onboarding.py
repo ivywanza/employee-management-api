@@ -17,6 +17,8 @@ class OnboardingDocumentResponse(BaseModel):
     document_type: Optional[str]
     reviewed: bool
     uploaded_at: datetime
+    organisation: Optional[str] = None
+    applicant_name: Optional[str] = None
 
     class Config:
         from_attributes = True

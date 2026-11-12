@@ -8,8 +8,9 @@ from app.models import (
     LeaveRequest,
     OnboardingDocument,
     Document,
+    MonthlySale,
 )
-from app.routers import grievance, user, department, onboarding, leave, document, auth, message, asset, asset_categories,asset_assignments, notification
+from app.routers import grievance, user, department, onboarding, leave, document, auth, message, asset, asset_categories,asset_assignments, notification, sale
 from fastapi.middleware.cors import CORSMiddleware
 from app.routers import live
 from app.routers import requisition
@@ -50,6 +51,7 @@ app.include_router(asset.router)
 app.include_router(asset_categories.router)
 app.include_router(asset_assignments.router)
 app.include_router(notification.router)
+app.include_router(sale.router)
 
 @app.get("/")
 async def root():

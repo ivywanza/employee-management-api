@@ -3,3 +3,4 @@ from app.models.user import User, RoleEnum
 from app.models.document import Document
 from app.models.onboarding import OnboardingDocument
 from app.models.leave import LeaveRequest
+from app.models.sale import MonthlySale

@@ -37,12 +37,9 @@ def days_in(record):
     return (record.end_date - record.start_date).days + 1
 
 
+# Checks whether the user's assigned system role is HR.
 def is_hr(user):
-    return (
-        user.department is not None
-        and user.department.name.strip().lower() == "hr"
-    )
-
+    return user.role == RoleEnum.hr
 
 def normalize_kenyan_phone(phone: str) -> str:
     cleaned = re.sub(r"[\s()-]", "", phone)
@@ -295,30 +292,19 @@ def my_leave_requests(
     )
 
 
+
 @router.get("/", response_model=list[LeaveRequestResponse])
 def list_leave_requests(
     db: Session = Depends(get_db),
     current_user: User = Depends(require_hr_or_superadmin),
 ):
-    query = db.query(LeaveRequest).join(
-        User, LeaveRequest.user_id == User.id
+    # HR can see all employees' leave requests.
+    # Superadmins can also see every request.
+    return (
+        db.query(LeaveRequest)
+        .order_by(LeaveRequest.submitted_at.desc())
+        .all()
     )
-
-    # HR cannot see requests submitted by HR employees.
-    # Superadmins can see every request.
-    if current_user.role != RoleEnum.superadmin:
-        query = (
-            query.outerjoin(User.department)
-            .filter(
-                or_(
-                    User.department_id.is_(None),
-                    func.lower(func.trim(User.department.property.mapper.class_.name))
-                    != "hr",
-                )
-            )
-        )
-
-    return query.order_by(LeaveRequest.submitted_at.desc()).all()
 
 
 @router.patch("/{leave_id}/review", response_model=LeaveRequestResponse)
@@ -359,13 +345,7 @@ def review_leave_request(
             detail="Applicant not found",
         )
 
-    # HR cannot review HR employees' requests.
-    if is_hr(applicant) and current_user.role != RoleEnum.superadmin:
-        raise HTTPException(
-            status_code=403,
-            detail="Only a superadmin can review HR employees' leave requests.",
-        )
-
+ 
     # An employee cannot review their own request.
     if applicant.id == current_user.id:
         raise HTTPException(

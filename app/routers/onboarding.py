@@ -94,7 +94,7 @@ def get_onboarding_document_url(
     # Admins, superadmins and HR can access other users' documents.
     if (
         doc.user_id != current_user.id
-        and role not in {"admin", "superadmin"}
+        and role not in {"admin", "superadmin", "hr"}
         and not is_hr(current_user)
     ):
         raise HTTPException(

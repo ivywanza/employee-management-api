@@ -1,18 +1,31 @@
+
 import uuid
 from datetime import date, datetime
-from typing import Optional
+from typing import Literal, Optional
 
 from pydantic import BaseModel, EmailStr, Field
 
 from app.models.user import RoleEnum
 
 
+OrganisationType = Literal["red_ant", "bella_organics", "juakali"]
+
+
 class UserRequest(BaseModel):
     full_name: str
     email: EmailStr
     role: RoleEnum = RoleEnum.employee
+    organisation: OrganisationType = "red_ant"
     department_id: Optional[uuid.UUID] = None
     start_date: date
+
+
+class UserUpdate(BaseModel):
+    full_name: Optional[str] = None
+    email: Optional[EmailStr] = None
+    role: Optional[RoleEnum] = None
+    organisation: Optional[OrganisationType] = None
+    department_id: Optional[uuid.UUID] = None
 
 
 class UserResponse(BaseModel):
@@ -20,6 +33,7 @@ class UserResponse(BaseModel):
     full_name: str
     email: EmailStr
     role: RoleEnum
+    organisation: OrganisationType
     department_id: Optional[uuid.UUID] = None
     start_date: date
     is_active: bool

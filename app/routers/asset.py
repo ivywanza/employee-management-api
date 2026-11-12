@@ -30,7 +30,7 @@ def role_name(user: User) -> str:
 
 
 def require_admin(user: User = Depends(get_current_user)) -> User:
-    if role_name(user) not in {"admin", "superadmin"}:
+    if role_name(user) not in {"admin", "superadmin", "hr"}:
         raise HTTPException(
             status_code=403,
             detail="You do not have permission to view the asset register.",
