@@ -263,6 +263,8 @@ def update_user(
 
 
 # Returns the currently authenticated employee's profile.
+
+# Returns the currently authenticated employee's profile.
 @router.get("/me", response_model=MeResponse)
 def get_me(
     db: Session = Depends(get_db),
@@ -273,15 +275,13 @@ def get_me(
     result = MeResponse.model_validate(current_user)
 
     result.missing_documents = missing
-    result.needs_wizard = (
-        current_user.must_change_password
-        or (
-            current_user.onboarding_required
-            and bool(missing)
-        )
-    )
+
+    # Only require the initial password change.
+    # Missing documents will no longer trigger a login wizard.
+    result.needs_wizard = current_user.must_change_password
 
     return result
+
 
 
 # Allows an employee to set their own permanent password.

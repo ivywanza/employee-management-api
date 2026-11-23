@@ -36,6 +36,7 @@ def require_onboarding_reviewer(
     )
 
 
+
 @router.post("/", response_model=OnboardingDocumentResponse)
 def upload_onboarding_document(
     document_type: str = Form(...),
@@ -44,13 +45,30 @@ def upload_onboarding_document(
     current_user: User = Depends(get_current_user),
 ):
     content = file.file.read()
-    key = upload_file(ONBOARDING_BUCKET, str(current_user.id), file.filename, content, file.content_type)
 
-    new_doc = OnboardingDocument(user_id=current_user.id, file_key=key, document_type=document_type)
+    key = upload_file(
+        ONBOARDING_BUCKET,
+        str(current_user.id),
+        file.filename,
+        content,
+        file.content_type,
+    )
+
+    # Always create a new submission.
+    # Previous submissions remain available as review history.
+    new_doc = OnboardingDocument(
+        user_id=current_user.id,
+        file_key=key,
+        document_type=document_type,
+        reviewed=False,
+    )
+
     db.add(new_doc)
     db.commit()
     db.refresh(new_doc)
+
     return new_doc
+
 
 
 @router.get("/mine", response_model=list[OnboardingDocumentResponse])
