@@ -26,6 +26,7 @@ class UserUpdate(BaseModel):
     role: Optional[RoleEnum] = None
     organisation: Optional[OrganisationType] = None
     department_id: Optional[uuid.UUID] = None
+    start_date: Optional[date] = None
 
 
 class UserResponse(BaseModel):
